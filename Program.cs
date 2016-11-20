@@ -18,9 +18,8 @@ namespace ISBN10
             String isbn;
             String isbnSaisi;
             bool isIsbnValid;
-            String reponse;
-            String blocExtrait;
-           // int isbnNomnbre;
+            string typeIsbn = "10";
+      
 
             // Demander à l'utilisateur de saisir son ISBN10 ou ISBN13
             message = "Veuillez saisir votre ISBN : ";
@@ -32,12 +31,20 @@ namespace ISBN10
             // Suppression des tirets éventuels dans l'ISBN saisi
             isbn = isbnSaisi.Replace("-", "");
 
-            System.Text.RegularExpressions.Regex myRegex = new Regex(@"([0-9]){9}([0-9]|X|x)$");
+            System.Text.RegularExpressions.Regex myRegex = new Regex(@"^([0-9]){9}([0-9]|X|x)$");
             isIsbnValid = myRegex.IsMatch(isbn); // retourne true ou false selon la vérification
+
+            // Si l'ISBN saisi n'est pas du type ISBN10 alors ici on regarde s'il est du type ISBN13 
+            if (!isIsbnValid) 
+            {
+                myRegex = new Regex(@"^(978|979)([0-9]){10}$");
+                isIsbnValid = myRegex.IsMatch(isbn); // Retourne true ou false selon la vérification
+                typeIsbn = "13";
+            }
 
             if (!isIsbnValid)
             {
-                message = "L'ISBN n'est pas correct, veuillez saisir un ISBN valide ex : 2-8769-4033-7";
+                message = "L'ISBN n'est pas correct, veuillez saisir un ISBN valide ex : 2-8769-4033-7 (ISBN10) ou 978-2-86889-006-1 (ISBN13)";
                 Console.WriteLine(message);
                 Program.Main(null); // Redemander la saisie de l'ISBN
             }
@@ -50,27 +57,43 @@ namespace ISBN10
                 char clefSaisie;
 
                 char[] isbnDecompose = isbn.ToCharArray(); // Création du tableau dans lequel on range chaque caractère de l'ISBN saisi
-
-                // Parcourt du tableau du premier jusqu'à l'avant dernier élément 
-                for (int i = 0; i < isbnDecompose.Length - 1; i++)
+                
+                // Si l'ISBN saisi est du type ISBN10
+                if (typeIsbn == "10")
                 {
-                    int number = (int)Char.GetNumericValue(isbnDecompose[i]);
+                    // Parcourt du tableau du premier jusqu'à l'avant dernier élément 
+                    for (int i = 0; i < isbnDecompose.Length - 1; i++)
+                    {
+                        int number = (int)Char.GetNumericValue(isbnDecompose[i]);
 
-                    somme = somme + (number * j);
-                    j++; // ne pas oublier d'incrémenter le compteur pour la pondération
+                        somme = somme + (number * j);
+                        j++; // ne pas oublier d'incrémenter le compteur pour la pondération
+                    }
+
+                    reste = (somme % 11);
+
+                    if (reste == 10)
+                    {
+                        clefAttendue = 'X';
+                    }
+                }                
+                else // Sinon on est dans le cas de l'ISBN 13
+                {
+                    // Parcourt du tableau du premier jusqu'à l'avant dernier élément 
+                    for (int i = 0; i < isbnDecompose.Length - 1; i = i+2) //i+2 permet de n'avoir que les chiffres impaires
+                    {
+                        int number = (int)Char.GetNumericValue(isbnDecompose[i]); // je récupère la valeur numérique que je convertis en int
+                        int number2 = (int)Char.GetNumericValue(isbnDecompose[i+1]);
+
+                        somme = somme + (number + 3 * number2);
+                    }
+
+                    reste = (10 - (somme % 10)) % 10;
                 }
 
-                reste = (somme % 11);
+                clefAttendue = Char.Parse(reste.ToString());
 
-                if (reste == 10) 
-                {
-                    clefAttendue = 'X';
-                }
-                else
-                {
-                    clefAttendue = Char.Parse(reste.ToString());
-                }
-
+                // On met la clé en majuscule pour gérer le cas où on a renseigné une clé "X" en minuscule
                 clefSaisie = Char.ToUpper(isbnDecompose[isbnDecompose.Length - 1]);
 
                 if (clefAttendue == clefSaisie)
