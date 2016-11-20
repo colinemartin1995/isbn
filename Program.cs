@@ -78,6 +78,7 @@ namespace ISBN10
                     message = "Votre ISBN est valide !";
                     Console.WriteLine(message);
                 }
+
                 else
                 {
                     message = "Votre ISBN n'est pas valide : clef saisie = " + isbnDecompose[isbnDecompose.Length - 1]
