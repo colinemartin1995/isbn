@@ -45,19 +45,48 @@ namespace ISBN10
             {
                 int j = 1; // Initialisation du compteur pour la pondération
                 int somme = 0; // Initialisation de la somme pour le calcul de la clef
+                int reste;
+                char clefAttendue;
+                char clefSaisie;
 
                 char[] isbnDecompose = isbn.ToCharArray(); // Création du tableau dans lequel on range chaque caractère de l'ISBN saisi
 
                 // Parcourt du tableau du premier jusqu'à l'avant dernier élément 
                 for (int i = 0; i < isbnDecompose.Length - 1; i++)
                 {
-                    int number = (int)isbnDecompose[i];
+                    int number = (int)Char.GetNumericValue(isbnDecompose[i]);
 
                     somme = somme + (number * j);
                     j++; // ne pas oublier d'incrémenter le compteur pour la pondération
                 }
+
+                reste = (somme % 11);
+
+                if (reste == 10) 
+                {
+                    clefAttendue = 'X';
+                }
+                else
+                {
+                    clefAttendue = Char.Parse(reste.ToString());
+                }
+
+                clefSaisie = Char.ToUpper(isbnDecompose[isbnDecompose.Length - 1]);
+
+                if (clefAttendue == clefSaisie)
+                {
+                    message = "Votre ISBN est valide !";
+                    Console.WriteLine(message);
+                }
+                else
+                {
+                    message = "Votre ISBN n'est pas valide : clef saisie = " + isbnDecompose[isbnDecompose.Length - 1]
+                             + ", clef attendue = " + clefAttendue;
+                    Console.WriteLine(message);
+                }
             }
 
+            Program.Main(null); // Relance le programme et vérifier un nouveau ISBN
         }
 
     }
